@@ -53,32 +53,10 @@ The Sports Mafia Presenter Assistant is a Telegram bot designed to help game pre
 ## 2. Data Models (src/database/models/)
 
 ### 2.1 QnAPair
-```python
-class QnAPair(BaseModel):
-    question: str
-    answer: str
-    embedding: Optional[List[float]]
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-```
 
 ### 2.2 RuleFragment
-```python
-class RuleFragment(BaseModel):
-    text: str
-    section: str  # Rule section identifier
-    embedding: Optional[List[float]]
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-```
 
 ### 2.3 UserInteraction
-```python
-class UserInteraction(BaseModel):
-    question: str
-    response_type: Literal["qna", "rag"]
-    timestamp: datetime
-    response: str
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-```
 
 ## 3. Development Environment
 - docker based development
