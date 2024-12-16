@@ -1,33 +1,17 @@
 version: '3.8'
 
 services:
-  chromadb:
-    image: chromadb/chroma:latest
-    container_name: chromadb
-    networks:
-      - mafia_network
+  chroma:
+    image: chromadb/chroma
     ports:
-      - "127.0.0.1:${CHROMA_PORT}:8000"  # Changed: bind to localhost only, map to default port 8000
-    environment:
-      - CHROMA_HOST=0.0.0.0
-      - CHROMA_PORT=8000  # Changed: use default ChromaDB port inside container
-      - PERSIST_DIRECTORY=/chroma/data
-      - ALLOW_RESET=true
-      - CHROMA_SERVER_AUTH_CREDENTIALS=${CHROMA_SERVER_AUTH_TOKEN}
-      - CHROMA_SERVER_AUTH_PROVIDER=token
-      - CHROMA_SERVER_AUTH_TOKEN_TRANSPORT_HEADER=X-Chroma-Token
+      - "${CHROMA_PORT}:8000"
     volumes:
-      - chroma_data:/chroma/data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${CHROMA_PORT}/api/v1/heartbeat"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-networks:
-  mafia_network:
-    driver: bridge
-    internal: true  # Added: make network internal only
+      - chroma_data:/chroma/chroma/
+      - ./server.htpasswd:/auth/server.htpasswd:ro
+    environment:
+      - CHROMA_SERVER_AUTHN_PROVIDER=${CHROMA_SERVER_AUTHN_PROVIDER}
+      - CHROMA_SERVER_AUTHN_CREDENTIALS_FILE=${CHROMA_SERVER_AUTHN_CREDENTIALS_FILE}
 
 volumes:
   chroma_data:
+    driver: local
