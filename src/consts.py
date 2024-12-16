@@ -20,3 +20,10 @@ CHROMA_SERVER_AUTHN_CREDENTIALS_FILE = os.environ.get(
     'CHROMA_SERVER_AUTHN_CREDENTIALS_FILE', default=env_values['CHROMA_SERVER_AUTHN_CREDENTIALS_FILE'])
 CHROMA_USER = os.environ.get(
     'CHROMA_USER', default=env_values['CHROMA_USER'])
+
+
+EMBEDDING_MODEL_NAME = os.environ.get(
+    'EMBEDDING_MODEL_NAME', default=env_values['EMBEDDING_MODEL_NAME'])
+EMBEDDING_DIMENSION = int(
+    os.environ.get('EMBEDDING_DIMENSION', default=env_values['EMBEDDING_DIMENSION'])
+)

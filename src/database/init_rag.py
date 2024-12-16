@@ -5,7 +5,7 @@ from consts import (CHROMA_PASSWORD,
                     CHROMA_USER,
                     CHROMA_PORT,
                     CHROMA_HOST,
-                    CHROMA_CLIENT_AUTHN_PROVIDER,
+                    CHROMA_CLIENT_AUTHN_PROVIDER, EMBEDDING_DIMENSION,
                     path_project
                     )
 
@@ -35,14 +35,16 @@ def init_collections():
         if 'qna_pairs' not in existing:
             client.create_collection(
                 name="qna_pairs",
-                metadata={"description": "QnA pairs collection"}
+                metadata={"description": "QnA pairs collection",
+                          "dimension": EMBEDDING_DIMENSION}
             )
             logger.info("Created qna_pairs collection")
 
         if 'rule_fragments' not in existing:
             client.create_collection(
                 name="rule_fragments",
-                metadata={"description": "Rule fragments collection"}
+                metadata={"description": "Rule fragments collection",
+                          "dimension": EMBEDDING_DIMENSION}
             )
             logger.info("Created rule_fragments collection")
 
