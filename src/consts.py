@@ -3,7 +3,7 @@ from dotenv import dotenv_values
 from pathlib import Path
 path_project = Path(__file__).resolve().parents[1]
 env_values = dotenv_values(path_project/'.env')
-print(env_values)
+
 # Chroma DB related constants
 CHROMA_HOST = os.environ.get(
     'CHROMA_HOST', default=env_values['CHROMA_HOST'])

@@ -8,4 +8,6 @@ dependencies = [
     "chromadb>=0.5.23",
     "ipykernel>=6.29.5",
     "pydantic>=2.10.3",
+    "pypdf2>=3.0.1",
+    "pytest>=8.3.4",
 ]
