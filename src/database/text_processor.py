@@ -99,6 +99,37 @@ def split_into_fragments(data_path: str) -> List[RuleFragment]:
     logger.info(f"Successfully split document into {len(fragments)} fragments")
     return fragments
 
+
+def load_txt_fragments(file_path: str, paragraph: str) -> List[RuleFragment]:
+    fragments = []
+    with open(file_path, 'r', encoding='utf-8') as f:
+        lines = [line.strip('\n') for line in f.readlines()]
+
+    current_heading = None
+    i = 10
+    for line in lines:
+        line = line.strip()
+        if not current_heading and line:
+            current_heading = line
+            continue
+        if not line:  # blank line => reset heading
+            current_heading = None
+            continue
+        if current_heading:
+            fragments.append(
+                RuleFragment(
+                    content=f"{current_heading}\n{line}",
+                    paragraph=f"{paragraph} {i}",
+                    hierarchy=[RuleLevel(
+                        title="",
+                        paragraph_number="-",
+                        heading_text=current_heading
+                    )],
+                    embedding=None
+                )
+            )
+            i += 1
+    return fragments
 # FIXME: Implement gluing content parts like this:
 # {'content': 'нанесение оскорблений другим игрокам, Судьям или зрителям; [комментарий СК ФСМ ]',
 #  'paragraph': '6.7.4',

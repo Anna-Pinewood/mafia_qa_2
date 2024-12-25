@@ -181,3 +181,9 @@ class RAGInterface:
         except Exception as e:
             logger.error(f"Failed to clear rules collection: {str(e)}")
             raise
+    
+    @staticmethod
+    def process_fragment(fragment: Dict[str, Any]) -> str:
+        begin = fragment['metadata']['full_path']
+        content = fragment['content']
+        return f"{begin}\n{content}"

@@ -6,7 +6,6 @@ import litellm
 
 from consts import LLM_API_KEY, LLM_BASE_URL, LLM_MODEL_NAME
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -64,6 +63,8 @@ class LLMCaller:
             call_params = {}
         messages = [{"role": "user",
                     "content": prompt.format(**call_params)}]
+        logger.info(
+            "Calling model with prompt %s (300 symbols):\n", prompt[:300])
         response = litellm.completion(
             model=self.model_name,
             messages=messages,

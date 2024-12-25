@@ -1,5 +1,6 @@
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
+from uuid import uuid4
 
 
 class RuleLevel(BaseModel):
@@ -14,6 +15,7 @@ class RuleFragment(BaseModel):
     # Only parent levels, not including current paragraph
     hierarchy: List[RuleLevel]
     embedding: Optional[List[float]]
+    fragment_id: str = Field(default_factory=lambda: str(uuid4()))
 
     def to_chroma_dict(self) -> Dict[str, Any]:
         return {
