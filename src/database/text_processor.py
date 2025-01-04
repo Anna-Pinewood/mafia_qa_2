@@ -3,7 +3,7 @@ from typing import List, Optional
 import re
 from pathlib import Path
 import PyPDF2
-from .models.rule_fragment import RuleFragment, RuleLevel
+from models.rule_fragment import RuleFragment, RuleLevel
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

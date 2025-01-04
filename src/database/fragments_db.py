@@ -24,14 +24,9 @@ class RAGInterface:
         embedding_model_name: str = EMBEDDING_MODEL_NAME
     ):
         """Initialize RAG interface with ChromaDB and embedding model."""
-        logger.info("Loading embeddings model...")
-        self.embeddings = HuggingFaceEmbeddings(
-            model_name=embedding_model_name,
-            # model_kwargs={'device': 'cuda'},
-            model_kwargs={'device': 'cpu'},  # Changed from 'cuda' to 'cpu'
-            encode_kwargs={'normalize_embeddings': True}
-        )
-        client = chromadb.HttpClient(
+        self._embedding_model_name = embedding_model_name
+        self._embeddings = None
+        self.client = chromadb.HttpClient(
             host=CHROMA_HOST,
             port=CHROMA_PORT,
             settings=Settings(
@@ -44,14 +39,28 @@ class RAGInterface:
         self.rules_vectorstore = Chroma(
             collection_name="rule_fragments",
             embedding_function=self.embeddings,
-            client=client,
+            client=self.client,
         )
 
         self.qna_vectorstore = Chroma(
             collection_name="qna_pairs",
             embedding_function=self.embeddings,
-            client=client,
+            client=self.client,
         )
+
+    @property
+    def embeddings(self):
+        if self._embeddings is None:
+            logger.info("Loading embeddings model... It may take some time.")
+            self._embeddings = HuggingFaceEmbeddings(
+                model_name=self._embedding_model_name,
+                model_kwargs={'device': 'cpu'},  # Changed from 'cuda' to 'cpu'
+                encode_kwargs={'normalize_embeddings': True}
+            )
+        return self._embeddings
+
+    def healthcheck(self):
+        return f"Chroma heartbeat: {self.client.heartbeat()}"
 
     def add_rule_fragment(self, fragment: RuleFragment) -> None:
         """Add a single rule fragment to the vector store."""
@@ -144,7 +153,8 @@ class RAGInterface:
                 metadatas.append(chroma_dict["metadata"])
                 ids.append(chroma_dict["paragraph"])
 
-            logger.info(f"Getting embeddings and loading into vector store...")
+            logger.info(
+                f"Getting embeddings and loading into vector store... It may take a while.")
             self.rules_vectorstore.add_texts(
                 texts=texts,
                 metadatas=metadatas,
@@ -181,7 +191,7 @@ class RAGInterface:
         except Exception as e:
             logger.error(f"Failed to clear rules collection: {str(e)}")
             raise
-    
+
     @staticmethod
     def process_fragment(fragment: Dict[str, Any]) -> str:
         begin = fragment['metadata']['full_path']

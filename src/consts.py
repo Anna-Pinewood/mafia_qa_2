@@ -40,3 +40,9 @@ if LLM_BASE_URL == "":
     LLM_BASE_URL = None
 LLM_MODEL_NAME = os.environ.get(
     'LLM_MODEL_NAME', default=env_values['LLM_MODEL_NAME'])
+
+
+DATA_COMMENTS = os.environ.get(
+    'DATA_COMMENTS', default=env_values['DATA_COMMENTS'])
+DATA_RULES = os.environ.get(
+    'DATA_RULES', default=env_values['DATA_RULES'])
