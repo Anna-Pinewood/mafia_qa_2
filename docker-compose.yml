@@ -4,6 +4,7 @@ services:
   chroma:
     image: chromadb/chroma
     ports:
+      # - "${CHROMA_PORT}:${CHROMA_PORT}"
       - "${CHROMA_PORT}:8000"
     volumes:
       - chroma_data:/chroma/chroma/
@@ -11,6 +12,17 @@ services:
     environment:
       - CHROMA_SERVER_AUTHN_PROVIDER=${CHROMA_SERVER_AUTHN_PROVIDER}
       - CHROMA_SERVER_AUTHN_CREDENTIALS_FILE=${CHROMA_SERVER_AUTHN_CREDENTIALS_FILE}
+
+  bot:
+    build: .
+    depends_on:
+      - chroma
+    env_file:
+      - .env
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - CHROMA_HOST=chroma
+      - CHROMA_PORT=${CHROMA_PORT}
 
 volumes:
   chroma_data:
