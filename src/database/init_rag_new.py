@@ -3,10 +3,11 @@ import logging
 from consts import DATA_COMMENTS, DATA_RULES
 from fragments_db import RAGInterface
 from text_processor import split_into_fragments, load_txt_fragments
-from utils import get_logger
 import fire
 
-logger = get_logger(__name__)
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 
 def fill_rule_fragments_collection(
