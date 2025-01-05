@@ -5,7 +5,7 @@ from langchain_core.embeddings import Embeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 import json
-from database.models.rule_fragment import RuleFragment
+from database.rule_fragment import RuleFragment
 import logging
 from chromadb.config import Settings
 from tqdm import tqdm
@@ -42,12 +42,6 @@ class RAGInterface:
             client=self.client,
         )
 
-        self.qna_vectorstore = Chroma(
-            collection_name="qna_pairs",
-            embedding_function=self.embeddings,
-            client=self.client,
-        )
-
     @property
     def embeddings(self):
         if self._embeddings is None:
@@ -80,21 +74,6 @@ class RAGInterface:
             logger.error(f"Failed to add rule fragment: {str(e)}")
             raise
 
-    def add_qna_pair(self, question: str, answer: str, metadata: Optional[Dict[str, Any]] = None) -> None:
-        """Add a QnA pair to the vector store."""
-        try:
-            # Add to vector store using question as the searchable text
-            self.qna_vectorstore.add_texts(
-                texts=[question],
-                metadatas=[{"answer": answer, **(metadata or {})}],
-                ids=[f"qna_{hash(question)}"]
-            )
-            logger.info(f"Added QnA pair to vector store")
-
-        except Exception as e:
-            logger.error(f"Failed to add QnA pair: {str(e)}")
-            raise
-
     def search_rules(self, query: str, k: int = 3) -> List[Dict[str, Any]]:
         """Search for relevant rule fragments."""
         try:
@@ -115,29 +94,6 @@ class RAGInterface:
 
         except Exception as e:
             logger.error(f"Failed to search rules: {str(e)}")
-            raise
-
-    def search_qna(self, query: str, k: int = 3) -> List[Dict[str, Any]]:
-        """Search for relevant QnA pairs."""
-        try:
-            results = self.qna_vectorstore.similarity_search_with_relevance_scores(
-                query,
-                k=k
-            )
-
-            formatted_results = []
-            for doc, score in results:
-                formatted_results.append({
-                    "question": doc.page_content,
-                    "answer": doc.metadata.get("answer"),
-                    "metadata": {k: v for k, v in doc.metadata.items() if k != "answer"},
-                    "relevance_score": score
-                })
-
-            return formatted_results
-
-        except Exception as e:
-            logger.error(f"Failed to search QnA pairs: {str(e)}")
             raise
 
     def batch_add_rule_fragments(self, fragments: List[RuleFragment]) -> None:
@@ -170,11 +126,9 @@ class RAGInterface:
         """Get statistics about the collections."""
         try:
             rules_count = self.rules_vectorstore._collection.count()
-            qna_count = self.qna_vectorstore._collection.count()
 
             return {
                 "rule_fragments": rules_count,
-                "qna_pairs": qna_count
             }
 
         except Exception as e:
