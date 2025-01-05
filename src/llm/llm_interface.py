@@ -1,4 +1,5 @@
-"""LLM interface for calling models – compatible with OpenAI, Ollama and other LLMs."""
+"""LLM interface for calling models –
+compatible with OpenAI, Ollama and other LLMs."""
 import json
 import logging
 

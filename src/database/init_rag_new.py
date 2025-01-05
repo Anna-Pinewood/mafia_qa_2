@@ -1,19 +1,23 @@
-import sys
+"""Automatically fill the fragments collection in the RAG database."""
 import logging
-from consts import DATA_COMMENTS, DATA_RULES
-from fragments_db import RAGInterface
-from text_processor import split_into_fragments, load_txt_fragments
-import fire
+import sys
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+import fire
+from fragments_db import RAGInterface
+from text_processor import load_txt_fragments, split_into_fragments
+
+from consts import DATA_COMMENTS, DATA_RULES
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
 def fill_rule_fragments_collection(
         pdf_rules_path: str = DATA_RULES,
         txt_comments_path: str = DATA_COMMENTS):
-    rag = RAGInterface()  # uses rule_fragments collection
+    rag = RAGInterface()
 
     # Check if 'rule_fragments' collection exists
     try:
@@ -27,7 +31,7 @@ def fill_rule_fragments_collection(
             logger.info(
                 "rule_fragments collection exists but is empty or new. Filling...")
 
-    except Exception as e:
+    except Exception:
         logger.info(
             "rule_fragments collection does not exist. Creating and filling...")
 
@@ -40,7 +44,7 @@ def fill_rule_fragments_collection(
     # Combine
     all_fragments = pdf_fragments + txt_fragments
     logger.info(
-        f"Total fragments to add: {len(all_fragments)}")
+        "Total fragments to add: %s", len(all_fragments))
     logger.info("Example fragment: %s", all_fragments[0])
 
     # Add fragments to DB
@@ -49,13 +53,12 @@ def fill_rule_fragments_collection(
 
 
 if __name__ == "__main__":
-    logger.info("Entering script...")
-    fire.Fire(fill_rule_fragments_collection)
-    """
-    Example usage:
+    """Example usage:
     ```
     python init_rag_new.py \
     --pdf_rules_path=data/official_rules_fsm.pdf \
     --txt_comments_path=data/fsm_comments.txt
     ```
     """
+    logger.info("Entering script...")
+    fire.Fire(fill_rule_fragments_collection)

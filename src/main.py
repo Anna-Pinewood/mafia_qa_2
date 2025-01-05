@@ -7,6 +7,8 @@ from aiogram.filters import Command
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
+DEBUG_CONTEXT = False
+
 
 async def main():
     from consts import TELEGRAM_BOT_TOKEN
@@ -35,12 +37,13 @@ async def main():
                          "context": context_text})
         model_answer = llm.get_response_content(response)
 
-        context_pretty = "\t • " + "\n\t • ".join(context_text.split("\n"))
         links_pretty = "<b>Релевантные пункты правил ФСМ:</b>\n" + \
             ", ".join([fr['metadata']['paragraph'] for fr in results])
-
-        # final_answer = f"{model_answer}\n\n<b>Получено на основе фрагментов правил:</b>\n{context_pretty}\n\n{links_pretty}"
         final_answer = f"{model_answer}\n\n{links_pretty}"
+
+        if DEBUG_CONTEXT:
+            context_pretty = "\t • " + "\n\t • ".join(context_text.split("\n"))
+            final_answer = f"{model_answer}\n\n<b>Получено на основе фрагментов правил:</b>\n{context_pretty}\n\n{links_pretty}"
         await message.answer(final_answer,
                              parse_mode="HTML")
 

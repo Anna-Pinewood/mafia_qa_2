@@ -1,19 +1,17 @@
-from typing import List, Optional, Dict, Any
-import chromadb
-from langchain_community.vectorstores import Chroma
-from langchain_core.embeddings import Embeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings
-import json
-from database.rule_fragment import RuleFragment
+"""RAG interface for interacting with stored fragments database."""
 import logging
+from typing import Any, Dict, List
+
+import chromadb
+import torch
 from chromadb.config import Settings
+from langchain_community.vectorstores import Chroma
+from langchain_huggingface import HuggingFaceEmbeddings
 from tqdm import tqdm
-from consts import (CHROMA_CLIENT_AUTHN_PROVIDER, CHROMA_PASSWORD,
-                    CHROMA_USER,
-                    CHROMA_PORT,
-                    CHROMA_HOST,
-                    EMBEDDING_MODEL_NAME)
+
+from consts import (CHROMA_CLIENT_AUTHN_PROVIDER, CHROMA_HOST, CHROMA_PASSWORD,
+                    CHROMA_PORT, CHROMA_USER, EMBEDDING_MODEL_NAME)
+from database.rule_fragment import RuleFragment
 
 logger = logging.getLogger(__name__)
 
@@ -44,13 +42,16 @@ class RAGInterface:
 
     @property
     def embeddings(self):
+        """Lazy load embeddings model."""
         if self._embeddings is None:
             logger.info("Loading embeddings model... It may take some time.")
+            device = 'cuda' if torch.cuda.is_available() else 'cpu'
             self._embeddings = HuggingFaceEmbeddings(
                 model_name=self._embedding_model_name,
-                model_kwargs={'device': 'cpu'},  # Changed from 'cuda' to 'cpu'
+                model_kwargs={'device': device},
                 encode_kwargs={'normalize_embeddings': True}
             )
+            logger.info("Using device: %s", device)
         return self._embeddings
 
     def healthcheck(self):
@@ -68,10 +69,10 @@ class RAGInterface:
                 ids=[chroma_dict["paragraph"]]
             )
             logger.info(
-                f"Added rule fragment {fragment.paragraph} to vector store")
+                "Added rule fragment %s to vector store", fragment.paragraph)
 
         except Exception as e:
-            logger.error(f"Failed to add rule fragment: {str(e)}")
+            logger.error("Failed to add rule fragment: %s", str(e))
             raise
 
     def search_rules(self, query: str, k: int = 3) -> List[Dict[str, Any]]:
@@ -93,7 +94,7 @@ class RAGInterface:
             return formatted_results
 
         except Exception as e:
-            logger.error(f"Failed to search rules: {str(e)}")
+            logger.error("Failed to search rules: %s", str(e))
             raise
 
     def batch_add_rule_fragments(self, fragments: List[RuleFragment]) -> None:
@@ -110,16 +111,16 @@ class RAGInterface:
                 ids.append(chroma_dict["paragraph"])
 
             logger.info(
-                f"Getting embeddings and loading into vector store... It may take a while.")
+                "Getting embeddings and loading into vector store... It may take a while.")
             self.rules_vectorstore.add_texts(
                 texts=texts,
                 metadatas=metadatas,
                 ids=ids
             )
-            logger.info(f"Added {len(fragments)} rule fragments in batch")
+            logger.info("Added %d rule fragments in batch", len(fragments))
 
         except Exception as e:
-            logger.error(f"Failed to batch add rule fragments: {str(e)}")
+            logger.error("Failed to batch add rule fragments: %s", str(e))
             raise
 
     def get_collection_stats(self) -> Dict[str, int]:
@@ -132,7 +133,7 @@ class RAGInterface:
             }
 
         except Exception as e:
-            logger.error(f"Failed to get collection stats: {str(e)}")
+            logger.error("Failed to get collection stats: %s", str(e))
             raise
 
     def clear_rules_collection(self) -> None:
@@ -143,11 +144,12 @@ class RAGInterface:
                 self.rules_vectorstore._collection.delete(ids=rule_ids)
                 logger.info("Cleared rule fragments collection")
         except Exception as e:
-            logger.error(f"Failed to clear rules collection: {str(e)}")
+            logger.error("Failed to clear rules collection: %s", str(e))
             raise
 
     @staticmethod
     def process_fragment(fragment: Dict[str, Any]) -> str:
+        """Format fragment for display."""
         begin = fragment['metadata']['full_path']
         content = fragment['content']
         return f"{begin}\n{content}"

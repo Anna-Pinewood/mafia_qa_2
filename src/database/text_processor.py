@@ -1,8 +1,11 @@
+"""Module for processing text data from PDF and txt files."""
 import logging
-from typing import List, Optional
 import re
 from pathlib import Path
+from typing import List
+
 import PyPDF2
+
 from database.rule_fragment import RuleFragment, RuleLevel
 
 logging.basicConfig(level=logging.INFO)
@@ -11,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 def extract_pdf_text(data_path: str) -> str:
     """Extract text content from PDF file."""
-    logger.info(f"Reading PDF file from: {data_path}")
+    logger.info("Reading PDF file from: %s", data_path)
     pdf_path = Path(data_path)
 
     with open(pdf_path, 'rb') as file:
@@ -20,7 +23,7 @@ def extract_pdf_text(data_path: str) -> str:
         for page in pdf_reader.pages:
             text += page.extract_text()
 
-    logger.info(f"Successfully extracted {len(text)} characters from PDF")
+    logger.info("Successfully extracted %d characters from PDF", len(text))
     return text
 
 
@@ -47,7 +50,7 @@ def parse_hierarchy(paragraph_num: str, lines: List[str]) -> List[RuleLevel]:
 
 def split_into_fragments(data_path: str) -> List[RuleFragment]:
     """Split PDF content into rule fragments."""
-    logger.info(f"Starting to process document from: {data_path}")
+    logger.info("Starting to process document from: %s", data_path)
 
     text = extract_pdf_text(data_path)
     lines = [line.strip() for line in text.split('\n') if line.strip()]
@@ -76,7 +79,8 @@ def split_into_fragments(data_path: str) -> List[RuleFragment]:
                     embedding=None
                 )
                 fragments.append(fragment)
-                logger.debug(f"Created fragment for paragraph {paragraph_num}")
+                logger.debug(
+                    "Created fragment for paragraph %s", paragraph_num)
 
             current_paragraph = match.group(0)
             current_content = [line[len(current_paragraph):].strip()]
@@ -96,11 +100,25 @@ def split_into_fragments(data_path: str) -> List[RuleFragment]:
         )
         fragments.append(fragment)
 
-    logger.info(f"Successfully split document into {len(fragments)} fragments")
+    logger.info("Successfully split document into %d fragments", len(fragments))
     return fragments
 
 
 def load_txt_fragments(file_path: str, paragraph: str) -> List[RuleFragment]:
+    """Lead comments from txt files.
+    Expected:
+    ```
+    High level heading
+    Statement 1
+    Statement 2
+
+    High level heading 2
+    Statement 1
+
+    High level heading 3
+    ...
+    ```
+    """
     fragments = []
     with open(file_path, 'r', encoding='utf-8') as f:
         lines = [line.strip('\n') for line in f.readlines()]
@@ -130,9 +148,3 @@ def load_txt_fragments(file_path: str, paragraph: str) -> List[RuleFragment]:
             )
             i += 1
     return fragments
-# FIXME: Implement gluing content parts like this:
-# {'content': 'нанесение оскорблений другим игрокам, Судьям или зрителям; [комментарий СК ФСМ ]',
-#  'paragraph': '6.7.4',
-#  'hierarchy': [RuleLevel(title='Дисциплинарный регламент', paragraph_number='6', heading_text='6. Дисциплинарный регламент'),
-#   RuleLevel(title='Дисквалифицирующий фол (удаление игрока). Игрок дис квалифицируется с игрового стола за следующие', paragraph_number='6.7', heading_text='6.7. Дисквалифицирующий фол (удаление игрока). Игрок дис квалифицируется с игрового стола за следующие')],
-#  'embedding': None}
